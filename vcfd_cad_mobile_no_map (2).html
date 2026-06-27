@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VCFD CAD Mobile</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VCFD CAD">
+<meta name="theme-color" content="#000000">
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    -webkit-text-size-adjust: 100%;
+}
+
+header {
+    background: #111;
+    border-bottom: 2px solid #333;
+    padding: calc(12px + env(safe-area-inset-top)) 12px 10px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+#title {
+    font-size: 21px;
+    font-weight: bold;
+}
+
+#statusLine {
+    margin-top: 6px;
+    color: #aaa;
+    font-size: 13px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+#ravPanel {
+    background: #101826;
+    border-bottom: 2px solid #333;
+    padding: 10px 12px;
+    position: sticky;
+    top: calc(57px + env(safe-area-inset-top));
+    z-index: 9;
+}
+
+#ravPanel label {
+    display: block;
+    color: #ffd700;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+#ravControls {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+#incidentInput {
+    background: #000;
+    color: #fff;
+    border: 1px solid #666;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    width: 145px;
+}
+
+button {
+    min-height: 42px;
+    border-radius: 6px;
+    border: 1px solid #777;
+    font-weight: bold;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+#attachButton {
+    background: #002b5c;
+    color: #ffd700;
+    border-color: #ffd700;
+}
+
+#clearButton {
+    background: #222;
+    color: #ddd;
+}
+
+.statusButton {
+    opacity: .75;
+}
+
+.statusButton.active {
+    outline: 3px solid #fff;
+    opacity: 1;
+}
+
+#enrouteButton {
+    background: #ffd700;
+    color: #000;
+}
+
+#onsceneButton {
+    background: #b00000;
+    color: #fff;
+}
+
+#availableButton {
+    background: #6b2fb8;
+    color: #fff;
+}
+
+#ravMessage {
+    color: #aaa;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+#errorBox {
+    display: none;
+    background: #4b0000;
+    color: #fff;
+    padding: 10px 12px;
+    border-bottom: 2px solid #ff4040;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#calls {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.callCard {
+    padding: 14px 12px;
+    border-bottom: 1px solid #222;
+    background: #050505;
+}
+
+.callCard:nth-child(even) {
+    background: #090909;
+}
+
+.callCard.ravAttachedCard {
+    border-left: 6px solid #ffd700;
+}
+
+.topLine {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.incident {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.time {
+    color: #aaa;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.address {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.city {
+    color: #bbb;
+    margin-top: 2px;
+}
+
+.type {
+    color: #69c9ff;
+    font-weight: bold;
+    margin-top: 7px;
+}
+
+.statusEnroute {
+    color: #ffd700;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.statusScene {
+    color: #ff4040;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.statusOther {
+    color: #ccc;
+    margin-top: 5px;
+}
+
+.units {
+    color: #9cff9c;
+    margin-top: 7px;
+}
+
+.unitBadge {
+    display: inline-block;
+    margin: 3px 4px 3px 0;
+    padding: 6px 8px;
+    border-radius: 5px;
+    background: #1f1f1f;
+    border: 1px solid #444;
+    color: #9cff9c;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.ravUnit {
+    display: inline-block;
+    margin: 3px 4px 3px 0;
+    padding: 6px 9px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.ravDispatched {
+    background: #002b5c;
+    color: #ffd700;
+    border: 1px solid #ffd700;
+}
+
+.ravEnroute {
+    background: #ffd700;
+    color: #000;
+    border: 1px solid #fff2a6;
+}
+
+.ravOnscene {
+    background: #b00000;
+    color: #fff;
+    border: 1px solid #ff7777;
+}
+
+.ravAvailable {
+    background: #6b2fb8;
+    color: #fff;
+    border: 1px solid #c7a4ff;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.routeButton,
+.mapButton {
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    flex: 1;
+}
+
+.routeButton {
+    background: #0b5fff;
+    color: white;
+}
+
+.mapButton {
+    background: #222;
+    color: white;
+    border: 1px solid #555;
+}
+
+.newCall {
+    animation: flashNew 1s ease-in-out 6;
+}
+
+@keyframes flashNew {
+    50% {
+        background: #5c0000;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div id="title">VCFD Live CAD Mobile</div>
+    <div id="statusLine">
+        <span id="callCount">Calls: 0</span>
+        <span id="lastUpdate">Connecting...</span>
+        <span>Refresh: 15 sec</span>
+    </div>
+</header>
+
+<section id="ravPanel">
+    <label for="incidentInput">Attach RAV1 to Incident</label>
+    <div id="ravControls">
+        <input id="incidentInput" type="text" placeholder="26-0053843">
+        <button id="attachButton" type="button">Attach</button>
+        <button id="clearButton" type="button">Clear</button>
+        <button id="enrouteButton" class="statusButton" type="button" data-status="enroute">Enroute</button>
+        <button id="onsceneButton" class="statusButton" type="button" data-status="onscene">Onscene</button>
+        <button id="availableButton" class="statusButton" type="button" data-status="available">Available</button>
+    </div>
+    <div id="ravMessage">RAV1 starts in dispatch status.</div>
+</section>
+
+<div id="errorBox"></div>
+<main id="calls"></main>
+
+<script>
+const API = "https://firefeeds.venturacounty.gov/api/incidents";
+const REFRESH_MS = 15000;
+const INCIDENT_STORAGE_KEY = "vcfd_rav1_mobile_incident";
+const STATUS_STORAGE_KEY = "vcfd_rav1_mobile_status";
+
+const knownCalls = new Set();
+let firstLoad = true;
+let currentCalls = [];
+
+let ravIncidentNumber = localStorage.getItem(INCIDENT_STORAGE_KEY) || "";
+let ravStatus = localStorage.getItem(STATUS_STORAGE_KEY) || "dispatched";
+
+function updateRavMessage(message) {
+    document.getElementById("ravMessage").textContent = message;
+}
+
+function saveRavState() {
+    if (ravIncidentNumber) {
+        localStorage.setItem(INCIDENT_STORAGE_KEY, ravIncidentNumber);
+    } else {
+        localStorage.removeItem(INCIDENT_STORAGE_KEY);
+    }
+
+    localStorage.setItem(STATUS_STORAGE_KEY, ravStatus);
+}
+
+function getRavClass() {
+    if (ravStatus === "enroute") return "ravEnroute";
+    if (ravStatus === "onscene") return "ravOnscene";
+    if (ravStatus === "available") return "ravAvailable";
+    return "ravDispatched";
+}
+
+function getRavBadge() {
+    return "<span class='ravUnit " + getRavClass() + "'>RAV1</span>";
+}
+
+function updateStatusButtons() {
+    document.querySelectorAll(".statusButton").forEach(button => {
+        button.classList.toggle("active", button.dataset.status === ravStatus);
+    });
+}
+
+function attachRav1() {
+    const input = document.getElementById("incidentInput");
+    const entered = input.value.trim();
+
+    if (!entered) {
+        updateRavMessage("Enter an incident number first.");
+        return;
+    }
+
+    const exists = currentCalls.some(call => call.incidentNumber === entered);
+
+    if (!exists) {
+        updateRavMessage("Incident not found in active calls.");
+        return;
+    }
+
+    ravIncidentNumber = entered;
+    ravStatus = "dispatched";
+    saveRavState();
+    updateStatusButtons();
+    updateRavMessage("RAV1 attached to " + entered + ".");
+    renderCalls(currentCalls);
+}
+
+function clearRav1() {
+    ravIncidentNumber = "";
+    ravStatus = "dispatched";
+    document.getElementById("incidentInput").value = "";
+    saveRavState();
+    updateStatusButtons();
+    updateRavMessage("RAV1 cleared.");
+    renderCalls(currentCalls);
+}
+
+function setRavStatus(status) {
+    if (!ravIncidentNumber) {
+        updateRavMessage("Attach RAV1 to an incident first.");
+        return;
+    }
+
+    ravStatus = status;
+    saveRavState();
+    updateStatusButtons();
+    updateRavMessage("RAV1 status updated.");
+    renderCalls(currentCalls);
+}
+
+function getStatusClass(statusText) {
+    const status = (statusText || "").toLowerCase();
+    if (status.includes("route")) return "statusEnroute";
+    if (status.includes("scene")) return "statusScene";
+    return "statusOther";
+}
+
+function buildAddress(call) {
+    return ((call.block || "") + " " + (call.address || "")).trim();
+}
+
+function directionsUrl(call) {
+    if (call.latitude && call.longitude) {
+        return "https://www.google.com/maps/dir/?api=1&destination=" +
+            encodeURIComponent(call.latitude + "," + call.longitude) +
+            "&travelmode=driving";
+    }
+
+    return "https://www.google.com/maps/dir/?api=1&destination=" +
+        encodeURIComponent(buildAddress(call) + ", " + (call.city || "") + ", CA") +
+        "&travelmode=driving";
+}
+
+function appleMapUrl(call) {
+    if (call.latitude && call.longitude) {
+        return "http://maps.apple.com/?daddr=" +
+            encodeURIComponent(call.latitude + "," + call.longitude) +
+            "&dirflg=d";
+    }
+
+    return "http://maps.apple.com/?daddr=" +
+        encodeURIComponent(buildAddress(call) + ", " + (call.city || "") + ", CA") +
+        "&dirflg=d";
+}
+
+function sortNewestFirst(calls) {
+    return calls.sort((a, b) => {
+        const aNumber = a.incidentNumber || "";
+        const bNumber = b.incidentNumber || "";
+        return bNumber.localeCompare(aNumber);
+    });
+}
+
+function formatUnits(call) {
+    const incidentNumber = call.incidentNumber || "";
+    const isRavAttached = incidentNumber && incidentNumber === ravIncidentNumber;
+
+    let html = "";
+    const units = (call.units || "")
+        .split(",")
+        .map(unit => unit.trim())
+        .filter(Boolean);
+
+    units.forEach(unit => {
+        html += "<span class='unitBadge'>" + unit + "</span>";
+    });
+
+    if (isRavAttached) {
+        html += getRavBadge();
+    }
+
+    return html;
+}
+
+function createCard(call) {
+    const card = document.createElement("section");
+    card.className = "callCard";
+
+    const incidentNumber = call.incidentNumber || "";
+    const isRavAttached = incidentNumber && incidentNumber === ravIncidentNumber;
+
+    if (isRavAttached) card.classList.add("ravAttachedCard");
+
+    if (!firstLoad && incidentNumber && !knownCalls.has(incidentNumber)) {
+        card.classList.add("newCall");
+    }
+
+    if (incidentNumber) knownCalls.add(incidentNumber);
+
+    card.innerHTML = `
+        <div class="topLine">
+            <div class="incident">${incidentNumber}</div>
+            <div class="time">${call.responseDate || ""}</div>
+        </div>
+
+        <div class="address">${buildAddress(call) || "Unknown Address"}</div>
+        <div class="city">${call.city || ""}</div>
+
+        <div class="type">${call.incidentType || "Unknown"}</div>
+        <div class="${getStatusClass(call.status)}">${call.status || ""}</div>
+
+        <div class="units">${formatUnits(call)}</div>
+
+        <div class="actions">
+            <a class="routeButton" href="${appleMapUrl(call)}" target="_blank" rel="noopener">Apple Maps</a>
+            <a class="mapButton" href="${directionsUrl(call)}" target="_blank" rel="noopener">Google Maps</a>
+        </div>
+    `;
+
+    return card;
+}
+
+function renderCalls(calls) {
+    const activeIncidentNumbers = new Set(
+        calls.map(call => call.incidentNumber).filter(Boolean)
+    );
+
+    if (ravIncidentNumber && !activeIncidentNumbers.has(ravIncidentNumber)) {
+        ravIncidentNumber = "";
+        ravStatus = "dispatched";
+        saveRavState();
+        updateStatusButtons();
+        updateRavMessage("RAV1 cleared because that incident is no longer active.");
+    }
+
+    const container = document.getElementById("calls");
+    container.innerHTML = "";
+
+    calls.forEach(call => {
+        container.appendChild(createCard(call));
+    });
+}
+
+async function loadCalls() {
+    try {
+        const response = await fetch(API + "?t=" + Date.now(), {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+
+        const calls = await response.json();
+
+        if (!Array.isArray(calls)) {
+            throw new Error("Feed did not return an array.");
+        }
+
+        sortNewestFirst(calls);
+        currentCalls = calls;
+
+        renderCalls(currentCalls);
+
+        firstLoad = false;
+
+        document.getElementById("callCount").textContent = "Calls: " + calls.length;
+        document.getElementById("lastUpdate").textContent =
+            "Updated: " + new Date().toLocaleTimeString();
+
+        document.getElementById("errorBox").style.display = "none";
+
+        if (ravIncidentNumber) {
+            document.getElementById("incidentInput").value = ravIncidentNumber;
+        }
+    }
+    catch (error) {
+        console.error(error);
+
+        document.getElementById("lastUpdate").textContent = "Connection Error";
+
+        const errorBox = document.getElementById("errorBox");
+        errorBox.style.display = "block";
+        errorBox.textContent =
+            "Unable to load active calls. On iPhone, do not open this from Mail or Files preview. Host it as a web page and open it in Safari.";
+    }
+}
+
+document.getElementById("attachButton").addEventListener("click", attachRav1);
+document.getElementById("clearButton").addEventListener("click", clearRav1);
+
+document.getElementById("incidentInput").addEventListener("keydown", event => {
+    if (event.key === "Enter") attachRav1();
+});
+
+document.querySelectorAll(".statusButton").forEach(button => {
+    button.addEventListener("click", () => setRavStatus(button.dataset.status));
+});
+
+if (ravIncidentNumber) {
+    document.getElementById("incidentInput").value = ravIncidentNumber;
+    updateRavMessage("RAV1 attached to " + ravIncidentNumber + ".");
+}
+
+updateStatusButtons();
+loadCalls();
+setInterval(loadCalls, REFRESH_MS);
+</script>
+
+</body>
+</html>
